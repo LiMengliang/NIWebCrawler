@@ -3,7 +3,9 @@ package com.ni.crawler;
 import java.util.List;
 
 import com.ni.crawler.model.Request;
+import com.ni.crawler.model.TaskService;
 import com.ni.crawler.processor.ProcessorManager;
+import com.ni.crawler.processor.ExampleListProcessorFactory;
 import com.ni.crawler.processor.ForumTopicListProcessorFactory;
 import com.ni.crawler.processor.ForumTopicProcessorFactory;
 import com.ni.crawler.scheduler.ParallelExecutionManager;
@@ -11,18 +13,16 @@ import com.ni.crawler.scheduler.RequestExecutionManager;
 
 public class Crawler {
 	
-	private RequestExecutionManager executionManager = new ParallelExecutionManager(10);
+	private RequestExecutionManager executionManager;
 	
-	private static Crawler singleInstanceCrawler = new Crawler();
+	// private static Crawler singleInstanceCrawler = new Crawler();
 	
-	public Crawler() {
+	public Crawler(TaskService taskService) {
+		executionManager = new ParallelExecutionManager(10, taskService);
 		ProcessorManager.me().
 			registerProcessorFactory(new ForumTopicListProcessorFactory()).
-			registerProcessorFactory(new ForumTopicProcessorFactory());
-	}
-	
-	public static Crawler me() {
-		return singleInstanceCrawler;
+			registerProcessorFactory(new ForumTopicProcessorFactory()).
+			registerProcessorFactory(new ExampleListProcessorFactory());
 	}
 	
 	public Crawler addSeedUrl(String url) {

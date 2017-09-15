@@ -1,5 +1,6 @@
 package com.ni.crawler.processor;
 
+import com.ni.crawler.model.TaskService;
 import com.ni.crawler.utilities.UrlUtilities;
 
 public class ForumTopicListProcessorFactory implements PageProcessorFactory {
@@ -16,9 +17,9 @@ public class ForumTopicListProcessorFactory implements PageProcessorFactory {
 	}
 
 	@Override
-	public PageProcessor createPageProcessor() {
+	public PageProcessor createPageProcessor(TaskService taskService) {
 
-		return new ForumTopicListProcessor();
+		return new ForumTopicListProcessor(taskService);
 	}
 
 }

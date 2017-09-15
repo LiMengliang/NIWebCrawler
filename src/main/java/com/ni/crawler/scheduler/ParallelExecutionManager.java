@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.ni.crawler.model.Request;
+import com.ni.crawler.model.TaskService;
 
 public class ParallelExecutionManager extends NoneDuplicateRequestExecutionManager {
 
@@ -15,8 +16,8 @@ public class ParallelExecutionManager extends NoneDuplicateRequestExecutionManag
 	private AtomicBoolean started = new AtomicBoolean(false);
 	
 	
-	public ParallelExecutionManager(int parallelNum) {
-		paraExecutor = new ParallelExecutor(parallelNum, this);
+	public ParallelExecutionManager(int parallelNum, TaskService taskService) {
+		paraExecutor = new ParallelExecutor(parallelNum, this, taskService);
 		requests = new ArrayList<>();
 		visitedUrls = new HashSet<>();
 	}

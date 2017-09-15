@@ -8,11 +8,16 @@ import org.jsoup.select.Elements;
 
 import com.ni.crawler.model.Page;
 import com.ni.crawler.model.Request;
+import com.ni.crawler.model.TaskService;
 import com.ni.crawler.utilities.JsoupUtilities;
 import com.ni.crawler.utilities.UrlUtilities;
 
-public class ForumTopicProcessor implements PageProcessor {
+public class ForumTopicProcessor extends GeneralPageProcessor  {
 	
+	public ForumTopicProcessor(TaskService taskService) {
+		super(taskService);
+	}
+
 	private static final String FORUM_URL = "https://forums.ni.com";
 	private static final String[] ATTACHMENT_URL_PATTERN = new String[] {
 			"", "ni", "attachments", "ni", "{*}", "{*}", "{*}", "{*}"
@@ -29,6 +34,7 @@ public class ForumTopicProcessor implements PageProcessor {
 				subRequests.add(new Request(buildAttachmentUrl(href)));
 			}
 		}		
+		super.onAnalyzeLinksFinished(page);
 		return subRequests;
 	}
 	

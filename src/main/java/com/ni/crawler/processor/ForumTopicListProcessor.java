@@ -10,11 +10,17 @@ import org.jsoup.select.Elements;
 
 import com.ni.crawler.model.Page;
 import com.ni.crawler.model.Request;
+import com.ni.crawler.model.TaskService;
 import com.ni.crawler.utilities.JsoupUtilities;
 import com.ni.crawler.utilities.UrlUtilities;
 
-public class ForumTopicListProcessor implements PageProcessor {
+public class ForumTopicListProcessor extends GeneralPageProcessor  {
 	
+	public ForumTopicListProcessor(TaskService taskService) {
+		
+		super(taskService);
+	}
+
 	private final String forumUrl = "https://forums.ni.com";
 	private final String[] topicLinkPattern = new String[] {
 		"", "t5", "{*}", "{*}", "td-p", "{*}"
@@ -28,7 +34,6 @@ public class ForumTopicListProcessor implements PageProcessor {
 				
 		List<Request> subRequests = new ArrayList<>();
 		
-		Document doc = Jsoup.parse(page.getPageContent());
 		Elements links = JsoupUtilities.selectElements(page, "a[href]");
 		for(Element link : links) {
 			String href = JsoupUtilities.getAttributeValue(link, "href");			
@@ -39,6 +44,7 @@ public class ForumTopicListProcessor implements PageProcessor {
 				subRequests.add(new Request(href));
 			}
 		}
+		super.onAnalyzeLinksFinished(page);
 		return subRequests;
 	}
 

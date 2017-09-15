@@ -12,27 +12,41 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ni.NiSpiderApplication;
 import com.ni.crawler.model.Page;
 import com.ni.crawler.model.Request;
+import com.ni.crawler.model.TaskService;
 import com.ni.crawler.utilities.HttpClientUtilities;
 
 public class HttpClientDownloader extends AbstractDownloader {
+	
+//	@Autowired
+	private TaskService taskService;
 	
 	private static final int HTTP_OK = 200;
 	private static final String TEXT_LOCAL_CACHE_PATH = "/home/meli/NIWebCache/html/";
 	private static final String ATTACHMENT_LOCAL_CACHE_PATH = "/home/meli/NIWebCache/attachment/";
 	
-	public HttpClientDownloader() {
-		
+	public HttpClientDownloader(TaskService taskService) {
+		this.taskService = taskService;
 	}	
 	@Override
 	public Page download(Request request) {
-		return new Page(get(request));		
+		return new Page(get(request), request.getUrl());		
 	}
 	
 	@Override
 	protected void onSuccess(Request requesst) {
+		
+		try {		
+			taskService.updateStatus(requesst.getUrl(), 'b');
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -50,9 +64,8 @@ public class HttpClientDownloader extends AbstractDownloader {
             	if (HttpClientUtilities.isTextHtmlType(response)) {            		
             		HttpEntity entity = response.getEntity();           	
             		String content = EntityUtils.toString(entity); 
-            		String title = content.substring(content.indexOf("<title>") + "<title>".length(), content.indexOf("</title>")).replace('/', '-');
+            		String title = content.substring(content.indexOf("<title>") + "<title>".length(), content.indexOf("</title>")).replace('/', '-').replace('.', '-');
             		// cache locally
-            		int randomNum = (new Random()).nextInt() + 1;
             		HttpClientUtilities.cacheText(content, TEXT_LOCAL_CACHE_PATH + title + ".html");
             	
             		if (isSuccess(response)) {
@@ -62,6 +75,10 @@ public class HttpClientDownloader extends AbstractDownloader {
             	}
             	else {            		
             		HttpClientUtilities.cacheBinary(response, ATTACHMENT_LOCAL_CACHE_PATH + url.substring(url.lastIndexOf("/")));
+            		if (isSuccess(response)) {
+            			onSuccess(request);
+            		}  
+            		taskService.updateStatus(request.getUrl(), 'c');
             		return url;
             	}
             } finally {  
