@@ -9,9 +9,9 @@ begin
 
 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
 
-drop table tasks;
+drop table tasks_forum;
 
-create table  tasks(
+create table  tasks_forum(
 			task_id int not null auto_increment,
 			url varchar(2048) not null,
 			local_path varchar(2048),

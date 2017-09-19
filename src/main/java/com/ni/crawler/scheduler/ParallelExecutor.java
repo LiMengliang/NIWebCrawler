@@ -48,6 +48,11 @@ public class ParallelExecutor implements Executor {
 				Downloader httpDownloader = new HttpClientDownloader(taskService);
 				Page page = httpDownloader.download(request);
 				
+				char status = taskService.getStatus(request.getUrl());
+				
+				if(status != 'b') {
+					return;
+				}
 				// get sub requests
 				PageProcessor pageProcessor = ProcessorManager.me().getBestProcessor(request.getUrl(), taskService);
 				if (pageProcessor != null) {					

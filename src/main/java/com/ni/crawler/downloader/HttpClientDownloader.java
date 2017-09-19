@@ -41,7 +41,6 @@ public class HttpClientDownloader extends AbstractDownloader {
 	protected void onSuccess(Request requesst) {
 		
 		try {		
-			taskService.updateStatus(requesst.getUrl(), 'b');
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -66,27 +65,34 @@ public class HttpClientDownloader extends AbstractDownloader {
             		String content = EntityUtils.toString(entity); 
             		String title = content.substring(content.indexOf("<title>") + "<title>".length(), content.indexOf("</title>")).replace('/', '-').replace('.', '-');
             		// cache locally
-            		HttpClientUtilities.cacheText(content, TEXT_LOCAL_CACHE_PATH + title + ".html");
-            	
+            		String localPath = TEXT_LOCAL_CACHE_PATH + title + ".html";
+            		HttpClientUtilities.cacheText(content, localPath);
+            		taskService.update(request.getUrl(), 'b', 't', localPath);
             		if (isSuccess(response)) {
             			onSuccess(request);
             		}            	
             		return content;
             	}
-            	else {            		
-            		HttpClientUtilities.cacheBinary(response, ATTACHMENT_LOCAL_CACHE_PATH + url.substring(url.lastIndexOf("/")));
+            	else {      
+            		String localPath = ATTACHMENT_LOCAL_CACHE_PATH + url.substring(url.lastIndexOf("/"));
+            		HttpClientUtilities.cacheBinary(response, localPath);
             		if (isSuccess(response)) {
             			onSuccess(request);
             		}  
-            		taskService.updateStatus(request.getUrl(), 'c');
+            		taskService.update(request.getUrl(), 'c', 'b', localPath);
             		return url;
             	}
             } finally {  
                 response.close();  
             }  
+        } catch (java.net.SocketException e) {
+        	taskService.updateStatus(request.getUrl(), 'a');
+            e.printStackTrace();  
         } catch (ClientProtocolException e) {  
+        	taskService.updateStatus(request.getUrl(), 'a');
             e.printStackTrace();  
         } catch (IOException e) {  
+        	taskService.updateStatus(request.getUrl(), 'a');
             e.printStackTrace();  
         } finally {    
             try {  
