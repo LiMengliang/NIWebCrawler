@@ -9,17 +9,18 @@ begin
 
 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION BEGIN END;
 
-drop table tasks_forum;
+drop table tasks_discus;
 
-create table  tasks_forum(
+create table  tasks_discus(
 			task_id int not null auto_increment,
-			url varchar(2048) not null,
+			url varchar(1024) not null,
 			local_path varchar(2048),
 			status char(1) not null default 'a',
 			category char(1) not null default 't',
 			last_modi_time DATETIME,
 			md5 varchar(256),
-	primary key(task_id)			
+			primary key(task_id),
+			unique key url (url)
 	);	
 
 end//

@@ -27,15 +27,17 @@ public class ParallelExecutionManager extends NoneDuplicateRequestExecutionManag
 	
 	@Override
 	protected void addWithoutDuplication(Request request) {
-		if (!visitedUrls.contains(request.getUrl())) {
-			visitedUrls.add(request.getUrl());
+//		if (!visitedUrls.contains(request.getUrl())) {
+//			visitedUrls.add(request.getUrl());
 			if (!started.get()) {
 				requests.add(request);
 			}
 			else {
 				paraExecutor.acceptRequest(request);
 			}
-		}
+//		}
+		
+		
 //		try {
 //			Task existing = taskService.getTaskByUrl(request.getUrl());
 //			if (existing == null || existing.getStatus() != 'c') {

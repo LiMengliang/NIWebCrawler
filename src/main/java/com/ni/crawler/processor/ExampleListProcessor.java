@@ -1,6 +1,7 @@
 package com.ni.crawler.processor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.jsoup.nodes.Element;
@@ -34,22 +35,23 @@ public class ExampleListProcessor extends GeneralPageProcessor {
 	
 	@Override
 	public List<Request> getSubRequests(Page page) {
-
+		
+		HashSet<String> urls = new HashSet<String>();
 		List<Request> subRequests = new ArrayList<>();
-		if (page.getUrl().equals("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/10/ps/30/sn/catnav:ex/ ")) {
-			int a= 0;
-		}
 		Elements links = JsoupUtilities.selectElements(page, "a[href]");
 		for(Element link : links) {
 			String href = JsoupUtilities.getAttributeValue(link, "href");			
 			if (UrlUtilities.isUrlPatternMatch(href, EXAMPLE_URL_PATTERN) ||
 					UrlUtilities.isUrlPatternMatch(href, EXAMPLE_DRAFT_URL_PATTERN) ||
 					UrlUtilities.isUrlPatternMatch(href, NEXT_PAGE_URL_PATTERN)) {
-				subRequests.add(new Request(href));
+				urls.add(href);
 			}
 			else {
 				Log.consoleWriteLine("Not processed: " + href);
 			}
+		}
+		for(String url : urls) {
+			subRequests.add(new Request(url));
 		}
 		super.onAnalyzeLinksFinished(page);
 		return subRequests;

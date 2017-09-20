@@ -5,17 +5,21 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 @Transactional
-public interface TaskDao  extends CrudRepository<Task, Integer> {
+public interface TaskDao  extends CrudRepository<Task, Integer>, JpaSpecificationExecutor<Task> {
 	
 	// @Query("select * from tasks t where t.url = ?1")
 	Task findByUrl(String url);
 	
 	List<Task> findByStatusNot(char status);
+	
+	List<Task> findByStatus(char status);
 }

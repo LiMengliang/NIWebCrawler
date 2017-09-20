@@ -13,7 +13,15 @@ public class UrlUtilities {
 		for(int i = 0; i < subsets.length; i++) {
 			String expected = pattern[i];
 			String actual = subsets[i];
-			if (expected != "{*}" && !expected.equals(actual)) {
+			if (expected.equals("{*}")) {
+				continue;
+			} 
+			else if (expected.equals("{num}")) {
+				if (!isNumber(actual)) {
+					return false;
+				}
+			}
+			else if (!expected.equals(actual)){
 				return false;
 			}
 		}
@@ -28,4 +36,25 @@ public class UrlUtilities {
 		}
 		return false;
 	}
+	
+	private static boolean isNumber(String string) {
+	    if (string == null || string.isEmpty()) {
+	        return false;
+	    }
+	    int i = 0;
+	    if (string.charAt(0) == '-') {
+	        if (string.length() > 1) {
+	            i++;
+	        } else {
+	            return false;
+	        }
+	    }
+	    for (; i < string.length(); i++) {
+	        if (!Character.isDigit(string.charAt(i))) {
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+
 }

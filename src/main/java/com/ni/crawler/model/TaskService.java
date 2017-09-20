@@ -1,6 +1,7 @@
 package com.ni.crawler.model;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface TaskService {
 	
@@ -14,7 +15,9 @@ public interface TaskService {
 	
 	public void addTask(Task task);
 	
-	public void addUniqueTask(Task task);
+	public boolean addUniqueTask(Task task);
 	
 	public void update(String url, char status, char category, String localPath);
+	
+	public Page<Task> getAllDownloadedTasks(Integer page, Integer size);
 }

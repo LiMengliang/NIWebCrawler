@@ -38,39 +38,40 @@ public class ParallelExecutor implements Executor {
 	public void acceptRequest(Request request) {
 		
 
-		taskService.addUniqueTask(new Task(request.getUrl(), 'b', 'a'));
-		Future<Object> submit = threadPool.submit(new Runnable() {	
-			@Override
-			public void run() {
-
-				// fetching raw data for request 
-				Log.consoleWriteLine((new StringBuilder("Start fetching from ").append(request.getUrl())).toString());
-				Downloader httpDownloader = new HttpClientDownloader(taskService);
-				Page page = httpDownloader.download(request);
-				
-				char status = taskService.getStatus(request.getUrl());
-				
-				if(status != 'b') {
-					return;
-				}
-				// get sub requests
-				PageProcessor pageProcessor = ProcessorManager.me().getBestProcessor(request.getUrl(), taskService);
-				if (pageProcessor != null) {					
-					List<Request> subRequests = pageProcessor.getSubRequests(page);
-					for(Request subRequest : subRequests) {
-						if (subRequest.getUrl() == "http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/11/ps/30/sn/catnav:ex/") {
-							int a = 0;
+		boolean taskUnprocesed = taskService.addUniqueTask(new Task(request.getUrl(), 'b', 'a'));
+		if (taskUnprocesed) {
+			Future<Object> submit = threadPool.submit(new Runnable() {	
+				@Override
+				public void run() {
+	
+					// fetching raw data for request 
+					Log.consoleWriteLine((new StringBuilder("Start fetching from ").append(request.getUrl()).append("[").append(Thread.currentThread().getId()).append("]")).toString());
+					Downloader httpDownloader = new HttpClientDownloader(taskService);
+					Page page = httpDownloader.download(request);
+					
+					char status = taskService.getStatus(request.getUrl());
+					
+					if(status != 'b') {
+						return;
+					}
+					// get sub requests
+					PageProcessor pageProcessor = ProcessorManager.me().getBestProcessor(request.getUrl(), taskService);
+					if (pageProcessor != null) {					
+						List<Request> subRequests = pageProcessor.getSubRequests(page);
+						for(Request subRequest : subRequests) {
+							if (subRequest.getUrl() == "http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/11/ps/30/sn/catnav:ex/") {
+								int a = 0;
+							}
+							executionManager.addRequest(subRequest);
 						}
-						executionManager.addRequest(subRequest);
+					}
+					else {
+						taskService.updateStatus(request.getUrl(), 'c');
 					}
 				}
-				else {
-					taskService.updateStatus(request.getUrl(), 'c');
-				}
-			}
-			
-		}, null);
-		boolean isDone = submit.isDone();
+				
+			}, null);
+		}
 		
 	}
 

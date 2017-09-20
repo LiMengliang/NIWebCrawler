@@ -1,6 +1,7 @@
 package com.ni.crawler.processor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.jsoup.Jsoup;
@@ -26,9 +27,10 @@ public class ForumTopicListProcessor extends GeneralPageProcessor  {
 		"", "t5", "{*}", "{*}", "td-p", "{*}"
 	};
 	private final String[] nextPageLinkPattern = new String[] {
-		"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}", "page", "{*}"
+		"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}", "page", "{num}"
 	};
 	
+	// TODO: need to get rid of duplicated urls.
 	@Override
 	public List<Request> getSubRequests(Page page) {
 				
@@ -41,6 +43,7 @@ public class ForumTopicListProcessor extends GeneralPageProcessor  {
 				subRequests.add(new Request(buildTopicUrl(href)));
 			}
 			else if (UrlUtilities.isUrlPatternMatch(href, nextPageLinkPattern)) {
+				
 				subRequests.add(new Request(href));
 			}
 		}
