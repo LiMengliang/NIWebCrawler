@@ -10,10 +10,10 @@ import org.jsoup.select.Elements;
 import com.ni.crawler.model.Page;
 import com.ni.crawler.model.Request;
 import com.ni.crawler.model.TaskService;
-import com.ni.crawler.utilities.JsoupUtilities;
-import com.ni.crawler.utilities.Log;
-import com.ni.crawler.utilities.UrlUtilities;
 import com.ni.crawler.processor.GeneralPageProcessor;
+import com.ni.crawler.utils.JsoupUtils;
+import com.ni.crawler.utils.Log;
+import com.ni.crawler.utils.UrlUtilities;
 
 public class ExampleListProcessor extends GeneralPageProcessor {
 
@@ -38,9 +38,9 @@ public class ExampleListProcessor extends GeneralPageProcessor {
 		
 		HashSet<String> urls = new HashSet<String>();
 		List<Request> subRequests = new ArrayList<>();
-		Elements links = JsoupUtilities.selectElements(page, "a[href]");
+		Elements links = JsoupUtils.selectElements(page, "a[href]");
 		for(Element link : links) {
-			String href = JsoupUtilities.getAttributeValue(link, "href");			
+			String href = JsoupUtils.getAttributeValue(link, "href");			
 			if (UrlUtilities.isUrlPatternMatch(href, EXAMPLE_URL_PATTERN) ||
 					UrlUtilities.isUrlPatternMatch(href, EXAMPLE_DRAFT_URL_PATTERN) ||
 					UrlUtilities.isUrlPatternMatch(href, NEXT_PAGE_URL_PATTERN)) {

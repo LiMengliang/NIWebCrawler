@@ -4,7 +4,7 @@ import org.jsoup.select.Elements;
 
 import com.ni.crawler.model.Post;
 import com.ni.crawler.model.Task;
-import com.ni.crawler.utilities.JsoupUtilities;
+import com.ni.crawler.utils.JsoupUtils;
 
 public class ForumDiscussionAnalyzer implements PageAnalyzer<Post> {
 

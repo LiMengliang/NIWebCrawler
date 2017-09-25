@@ -1,7 +1,7 @@
 package com.ni.crawler.processor;
 
 import com.ni.crawler.model.TaskService;
-import com.ni.crawler.utilities.UrlUtilities;
+import com.ni.crawler.utils.UrlUtilities;
 
 public class ForumTopicListProcessorFactory implements PageProcessorFactory {
 	

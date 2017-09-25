@@ -1,4 +1,4 @@
-package com.ni.crawler.utilities;
+package com.ni.crawler.utils;
 
 import java.util.List;
 

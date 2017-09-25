@@ -3,7 +3,7 @@ package com.ni.crawler.processor;
 import org.assertj.core.api.UrlAssert;
 
 import com.ni.crawler.model.TaskService;
-import com.ni.crawler.utilities.UrlUtilities;
+import com.ni.crawler.utils.UrlUtilities;
 
 public class ExampleListProcessorFactory implements PageProcessorFactory {
 

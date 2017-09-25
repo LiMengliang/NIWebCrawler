@@ -12,8 +12,8 @@ import org.jsoup.select.Elements;
 import com.ni.crawler.model.Page;
 import com.ni.crawler.model.Request;
 import com.ni.crawler.model.TaskService;
-import com.ni.crawler.utilities.JsoupUtilities;
-import com.ni.crawler.utilities.UrlUtilities;
+import com.ni.crawler.utils.JsoupUtils;
+import com.ni.crawler.utils.UrlUtilities;
 
 public class ForumTopicListProcessor extends GeneralPageProcessor  {
 	
@@ -36,9 +36,9 @@ public class ForumTopicListProcessor extends GeneralPageProcessor  {
 				
 		List<Request> subRequests = new ArrayList<>();
 		
-		Elements links = JsoupUtilities.selectElements(page, "a[href]");
+		Elements links = JsoupUtils.selectElements(page, "a[href]");
 		for(Element link : links) {
-			String href = JsoupUtilities.getAttributeValue(link, "href");			
+			String href = JsoupUtils.getAttributeValue(link, "href");			
 			if (UrlUtilities.isUrlPatternMatch(href, topicLinkPattern)) {
 				subRequests.add(new Request(buildTopicUrl(href)));
 			}
