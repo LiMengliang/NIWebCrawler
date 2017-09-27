@@ -14,7 +14,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.CharArrayBuffer;
 
-public class HttpClientUtilities {
+public class HttpClientUtils {
 	
 	public final static String TEXT_MIMETYPE = "text/html";
 

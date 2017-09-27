@@ -20,7 +20,7 @@ import com.ni.NiSpiderApplication;
 import com.ni.crawler.model.Page;
 import com.ni.crawler.model.Request;
 import com.ni.crawler.model.TaskService;
-import com.ni.crawler.utils.HttpClientUtilities;
+import com.ni.crawler.utils.HttpClientUtils;
 import com.ni.crawler.utils.Log;
 
 public class HttpClientDownloader extends AbstractDownloader {
@@ -88,13 +88,13 @@ public class HttpClientDownloader extends AbstractDownloader {
        	HttpGet httpget = new HttpGet(url); 
 	        CloseableHttpResponse response = httpclient.execute(httpget);  
 	        try {    
-	        	if (HttpClientUtilities.isTextHtmlType(response)) {            		
+	        	if (HttpClientUtils.isTextHtmlType(response)) {            		
 	            	HttpEntity entity = response.getEntity();           	
 	            	String content = EntityUtils.toString(entity); 
 	            	String title = content.substring(content.indexOf("<title>") + "<title>".length(), content.indexOf("</title>")).replace('/', '-').replace('.', '-');
 	            	// cache locally
 	            	String localPath = TEXT_LOCAL_CACHE_PATH + title + ".html";
-	            	HttpClientUtilities.cacheText(content, localPath);
+	            	HttpClientUtils.cacheText(content, localPath);
 	            	taskService.update(request.getUrl(), 'b', 't', localPath);
 	            	if (isSuccess(response)) {
 	            		onSuccess(request);
@@ -103,7 +103,7 @@ public class HttpClientDownloader extends AbstractDownloader {
 	            }
 	            else {      
 	            	String localPath = ATTACHMENT_LOCAL_CACHE_PATH + url.substring(url.lastIndexOf("/"));
-	            	HttpClientUtilities.cacheBinary(response, localPath);
+	            	HttpClientUtils.cacheBinary(response, localPath);
 	            	if (isSuccess(response)) {
 	            		onSuccess(request);
 	            	}  

@@ -95,6 +95,7 @@ public class ExampleAnalyzer implements PageAnalyzer {
 	@Override
 	public Object analyze(Task task) {
 		String localPath = task.getLocalPath();
+		localPath = localPath.replace("NIWebCache", "NIWebCache_Ex");
 		File file = new File(localPath);
 		if (file.exists()) {
 			Document doc = JsoupUtils.parseLocalFile(localPath);
@@ -150,14 +151,14 @@ public class ExampleAnalyzer implements PageAnalyzer {
 							ArchiveUtils.unzip(ATTACHMENT_FOLDER + fileName, destDirectory);
 							List<Path> subFiles = FileUtils.listFilesInDirectory(destDirectory);
 							for(Path filePath : subFiles) {
-								links.append(filePath.toString().substring(filePath.toString().indexOf(ATTACHMENT_FOLDER))).append("{#}");
+								links.append(filePath.toString().substring(ATTACHMENT_FOLDER.length())).append("#3#");
 							}
 							
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
 					} else {
-						links.append(fileName).append("{#}");
+						links.append(fileName).append("#3#");
 					}
 				}
 				Log.consoleWriteLine(links.toString());
