@@ -161,7 +161,7 @@ public class ExampleAnalyzer implements PageAnalyzer {
 						links.append(fileName).append("#3#");
 					}
 				}
-				Log.consoleWriteLine(links.toString());
+				// Log.consoleWriteLine(links.toString());
 				example.setAttachmentUrls(links.toString());	
 				
 				// analyze article
