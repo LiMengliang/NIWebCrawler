@@ -22,6 +22,10 @@ public class JsoupUtils {
 		return doc.select(query);
 	}
 	
+	public static Elements selectElements(Element element, String query) {
+		return element.select(query);
+	}
+	
 	public static String getAttributeValue(Element element, String attributeName) {
 		
 		return element.attr(attributeName);

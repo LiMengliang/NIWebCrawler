@@ -11,6 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 import com.ni.NiSpiderApplication;
 import com.ni.crawler.downloader.Downloader;
+import com.ni.crawler.downloader.FtpClientDownloader;
 import com.ni.crawler.downloader.HttpClientDownloader;
 import com.ni.crawler.model.Page;
 import com.ni.crawler.model.Request;
@@ -46,10 +47,21 @@ public class ParallelExecutor implements Executor {
 			Future<Object> submit = threadPool.submit(new Runnable() {	
 				@Override
 				public void run() {
-	
+					Downloader downloader = null;
+					if (request.getUrl().contains("ftp.ni.com")) {
+						try {
+							downloader = new FtpClientDownloader(taskService);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} else {
+						downloader = new HttpClientDownloader(taskService); 
+					}
+					
 					// fetching raw data for request 
-					Downloader httpDownloader = new HttpClientDownloader(taskService);
-					Page page = httpDownloader.download(request);
+					// Downloader httpDownloader = new HttpClientDownloader(taskService);
+					Page page = downloader.download(request);
 					
 					char status = taskService.getStatus(request.getUrl());
 					

@@ -2,6 +2,9 @@ package com.ni;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -40,9 +43,12 @@ import org.json.simple.parser.ParseException;
 import com.ni.analyze.ExampleAnalyzer;
 import com.ni.analyze.TextAnalyzer;
 import com.ni.crawler.Crawler;
+import com.ni.crawler.downloader.FtpClientDownloader;
+import com.ni.crawler.model.ArticleTfIdf;
 import com.ni.crawler.model.Example;
 import com.ni.crawler.model.ExampleDao;
 import com.ni.crawler.model.ExampleService;
+import com.ni.crawler.model.Request;
 import com.ni.crawler.model.Task;
 import com.ni.crawler.model.TaskDao;
 import com.ni.crawler.model.TaskService;
@@ -52,6 +58,12 @@ import com.ni.crawler.utils.JsoupUtils;
 import com.ni.crawler.utils.Log;
 import com.ni.crawler.utils.StemUtils;
 import com.ni.crawler.utils.UrlUtilities;
+import com.ni.kmean.KMeans;
+import com.ni.kmean.KMeansCluster;
+import com.ni.kmean.KMeansNode;
+import com.ni.lda.Corpus;
+import com.ni.lda.LdaGibbsSampler;
+import com.ni.lda.LdaUtil;
 
 @RestController
 @SpringBootApplication
@@ -78,12 +90,25 @@ public class NiSpiderApplication {
 		   // level of a logger programmatically. This is usually done
 		   // in configuration files.
 		   logger.setLevel(Level.INFO);
-		// Crawler.me().addSeedUrl("https://forums.ni.com/t5/LabVIEW/bd-p/170").start();
-		// Crawler.me().addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/ps/30/sn/catnav:ex/").start();
-// 		new Crawler(taskService).addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/ps/30/sn/catnav:ex/").start();
-		new Crawler(taskService).addSeedUrl("https://forums.ni.com/t5/LabVIEW/bd-p/170/page/1").start();
-//		List<Task> task = taskDao.findByUrl("https://forums.ni.com/t5/LabVIEW/bd-p/17y");
-		// List<Task> unfinished = taskService.getUnfinishedTasks();
+		   
+		   //examples
+		   new Crawler(taskService)
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:4/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3478/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3465/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:8/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:11/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:1/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:13/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:6/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:7/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:2/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:4497/")
+//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:4018/")
+//		   	.addSeedUrl("https://forums.ni.com/t5/Example-Programs/tkb-p/3039")
+		   	.start();
+		   
 	}
 	
 	@RequestMapping("/continue")
@@ -96,6 +121,7 @@ public class NiSpiderApplication {
 		crawler.start();
 	}	
 	
+	// analyze and comit to solr
 	@RequestMapping("analyze")
 	public void analyze() {
 		List<Example> examples = new ArrayList<>();
@@ -156,6 +182,7 @@ public class NiSpiderApplication {
 		System.out.println("Finished, total " + totalNum + " records");
 	}
 	
+	// analyze example term frequency
 	@RequestMapping("termFreq")
 	public void analyzeTermFrequency() {
 		
@@ -288,6 +315,7 @@ public class NiSpiderApplication {
 		JSONUtils.toFile("/home/meli/TermFreq3Grams.json", jsonArray);		
 	}
 	
+	// estimate tags for example.
 	@RequestMapping("estimateTags")
 	public void estimateTags() {
 				
@@ -349,6 +377,150 @@ public class NiSpiderApplication {
 				}
 			}
 		}
+	}
+	
+	// analyze tfidf for example.
+	@RequestMapping("example/tfidf")
+	public void exampleTfIdf() {
+				
+		int pageIndex = 1;
+		Map<String, Double> termAndDocFreq = null;
+		ExampleAnalyzer exAnalyzer = new ExampleAnalyzer();
+		TextAnalyzer analyzer = new TextAnalyzer();
+		
+		try {
+			termAndDocFreq = JSONUtils.jsonToMap(JSONUtils.readFromFile("/home/meli/TermFreq.json"));
+		} catch (ParseException | IOException e) {
+			e.printStackTrace();
+		}
+		
+		List<ArticleTfIdf> tfidfs = new ArrayList<>();
+		List<Task> tasks = null;
+		do {
+			tasks = null;
+			Page<Task> page = this.taskService.getAllDownloadedTasks(pageIndex, 10);
+			if (page != null) {
+				tasks = page.getContent();
+				for(Task task : tasks) {
+					
+					Example example = (Example)exAnalyzer.analyze(task);
+					if (example != null) {
+						String overview = example.getOverview();
+						if (overview != null) {
+							
+							List<String> terms = analyzer.analyze(example.getTitle() + " " + example.getTitle());
+							ArticleTfIdf tfidf = new ArticleTfIdf(example.getUrl(), example.getTitle());
+							
+							for(String term : terms) {								
+								double count = tfidf.getOrDefaultTfidf(term, 0.0);
+								tfidf.updateTfIdf(term, count + 1);
+							}
+							
+							double maxScore = -1.0;
+							for(Map.Entry<String, Double> score : tfidf.getTfidf().entrySet()) {
+								// if (score.getValue() >= 1) {
+									double idf = termAndDocFreq.getOrDefault(score.getKey(), 1.0);
+									double finalScore = score.getValue()*idf;
+									if (maxScore < finalScore) {
+										maxScore = finalScore;
+									}
+									tfidf.updateTfIdf(score.getKey(), finalScore);
+//								}
+//								else {
+//									tfidf.updateTfIdf(score.getKey(), 0.0);
+//								}
+							}
+							
+							for(Map.Entry<String, Double> score : tfidf.getTfidf().entrySet()) {
+								tfidf.updateTfIdf(score.getKey(), score.getValue()/maxScore);
+							}
+
+							String name = example.getTitle().replace('/', '_');
+							JSONUtils.toFile("/home/meli/tfidf/" + name + ".json", tfidf.tfidfToJSON());
+							tfidfs.add(tfidf);
+							Log.consoleWriteLine("******* estimate " + name + " ** " + example.getUrl());
+//							Map<Double, List<String>> freq = reverseKeyAndValue(tfidf.getTfidf());
+						}
+					}	
+				}
+			}
+			pageIndex += 1;		
+		}while(tasks != null && tasks.size() >= 10);
+		Log.consoleWriteLine("******* finished **********");
+		// JSONUtils.toFile("/home/meli/Tfidfs.json", JSONUtils.tfidfsToJSONArray(tfidfs));
+	}
+	
+	// cluster example.
+	@RequestMapping("clusterExample")
+	public void clusterExample() throws IOException {
+		
+		List<ArticleTfIdf> tfidfs = readTfidfFromJson();
+		KMeans kmeans = new KMeans(100, tfidfs);		
+		kmeans.cluster();
+		Log.consoleWriteLine("finished clustering");
+		Map<KMeansCluster, Double> distances = new HashMap<>();
+		int i = 1;
+		
+		File file = new File("/home/meli/TextCluster2");
+		FileWriter writer = new FileWriter(file);
+		for(KMeansCluster cluster : kmeans.getClusters()) {
+//			Log.consoleWriteLine("Cluster: size " + cluster.getNodes().size() + " max distance " + cluster.getMaxDistance());
+//			Log.consoleWriteLine("Cluster: size " + cluster.getNodes().size() + " average distance " + cluster.getAverageDistance());
+// 			Log.consoleWriteLine("Cluster: size " + cluster.getNodes().size() + " x2 distance " + cluster.getX2Distance());
+			Log.consoleWriteLine(" ");
+			// Log.consoleWriteLine("*******************Cluster ******************************");
+			
+			writer.write("*******************Cluster " + i + " count " + cluster.getNodes().size() +  "******************************");
+			writer.write('\n');
+			i++;
+			for(KMeansNode node : cluster.getNodes()) {
+				ArticleTfIdf e = (ArticleTfIdf)node;
+				// Log.consoleWriteLine(e.getTitle());
+				writer.write(e.getTitle());writer.write('\n');
+			}
+			
+			
+			Log.consoleWriteLine(" ");
+		}
+		writer.close();
+	}
+	
+	@RequestMapping("ldaTest")
+	public void ldaTest() throws IOException {
+		// 1. Load corpus from disk
+	    Corpus corpus = Corpus.load("/home/meli/eclipse-workspace/NISpider/mini");
+	    // 2. Create a LDA sampler
+	    LdaGibbsSampler ldaGibbsSampler = new LdaGibbsSampler(corpus.getDocument(), corpus.getVocabularySize());
+	    // 3. Train it
+	    ldaGibbsSampler.gibbs(20);
+	    // 4. The phi matrix is a LDA model, you can use LdaUtil to explain it.
+	    double[][] phi = ldaGibbsSampler.getPhi();
+	    Map<String, Double>[] topicMap = LdaUtil.translate(phi, corpus.getVocabulary(), 20);
+	    LdaUtil.explain(topicMap);
+	}
+	
+	
+	private List<ArticleTfIdf> readTfidfFromJson() {
+		File directory = new File("/home/meli/tfidf");
+		List<ArticleTfIdf> tfidfs = new ArrayList<ArticleTfIdf>();
+		if (directory.exists()) {
+			File[] files = directory.listFiles();
+			for(File file : files) {
+				
+					ArticleTfIdf tfidf = null;
+					try {
+						tfidf = ArticleTfIdf.getFromJsonFile(file.getAbsolutePath());
+					} catch (IOException | ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if (tfidf != null) {
+						tfidfs.add(tfidf);
+					}
+				
+			}
+		}
+		return tfidfs;
 	}
 	
 	@RequestMapping("estimateTags2Gram")
@@ -589,6 +761,15 @@ public class NiSpiderApplication {
 		boolean match = UrlUtilities.isUrlPatternMatch("https://forums.ni.com/t5/LabVIEW/bd-p/170/page/2203?q=_change_me_", new String[] {
 				"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}", "page", "{num}"
 		});
+	}
+	
+	@RequestMapping("ftp")
+	public void testFtp() throws Exception {
+		FtpClientDownloader downloader = new FtpClientDownloader(null);
+		Request request = new Request("pub/devzone/epd/usinglabview.zip");
+		downloader.download(request);
+		Request request2 = new Request("pub/devzone/epd/usinghtbasic.zip");
+		downloader.download(request2);
 	}
 	
 	private void getByUrl(int id) {

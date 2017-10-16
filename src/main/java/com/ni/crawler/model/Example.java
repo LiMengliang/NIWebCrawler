@@ -24,7 +24,7 @@ import com.ni.crawler.utils.TwoTuple;
 import com.ni.crawler.utils.XmlUtils;
 
 @Entity
-@Table(name="examples")
+@Table(name="examples_new")
 public class Example implements SolrDocument {
 	
 	@Id

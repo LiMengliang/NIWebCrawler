@@ -12,7 +12,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name="tasks")
+@Table(name="tasks_example_new")
 public class Task {
 	
 	@Id

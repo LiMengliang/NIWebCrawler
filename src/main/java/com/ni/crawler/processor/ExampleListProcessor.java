@@ -46,9 +46,9 @@ public class ExampleListProcessor extends GeneralPageProcessor {
 					UrlUtilities.isUrlPatternMatch(href, NEXT_PAGE_URL_PATTERN)) {
 				urls.add(href);
 			}
-			else {
-				Log.consoleWriteLine("Not processed: " + href);
-			}
+//			else {
+//				Log.consoleWriteLine("Not processed: " + href);
+//			}
 		}
 		for(String url : urls) {
 			subRequests.add(new Request(url));

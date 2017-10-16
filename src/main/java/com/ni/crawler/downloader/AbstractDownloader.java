@@ -1,5 +1,8 @@
 package com.ni.crawler.downloader;
 
+import java.io.IOException;
+import java.net.SocketException;
+
 import com.ni.crawler.model.Page;
 import com.ni.crawler.model.Request;
 

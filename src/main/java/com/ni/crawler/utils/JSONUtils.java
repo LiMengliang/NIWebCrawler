@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -11,6 +12,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import com.ni.crawler.model.ArticleTfIdf;
 
 public class JSONUtils {
 
@@ -26,6 +29,32 @@ public class JSONUtils {
 		return jsonArray;
 	}
 	
+	public static JSONArray tfidfsToJSONArray(List<ArticleTfIdf> tfidfs) {
+		
+		JSONArray jsonArray = new JSONArray();
+		for (ArticleTfIdf tfidf : tfidfs) {
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("url", tfidf.getUrl());
+			jsonObject.put("title", tfidf.getTitle());
+			JSONArray tfidfArray = mapToJson(tfidf.getTfidf());
+			jsonObject.put("tfidfs", tfidfArray);
+			jsonArray.add(jsonObject);
+		}
+		
+		return jsonArray;		
+	}
+	
+	public static JSONObject tfidfToJSON(ArticleTfIdf tfidf) {
+		
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("url", tfidf.getUrl());
+		jsonObject.put("title", tfidf.getTitle());
+		JSONArray tfidfArray = mapToJson(tfidf.getTfidf());
+		jsonObject.put("tfidfs", tfidfArray);
+		
+		return jsonObject;		
+	}
+		
 	public static JSONArray readFromFile(String path) throws ParseException, FileNotFoundException, IOException {
 		JSONParser parser = new JSONParser();
 		JSONArray jsonArray = (JSONArray) parser.parse(new FileReader(path));	
@@ -42,6 +71,17 @@ public class JSONUtils {
 		
 	}
 	
+	public static void toFile(String path, JSONObject jsonObject) {
+		try (FileWriter file = new FileWriter(path)) {
+
+            file.write(jsonObject.toJSONString());
+            file.flush();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+	}
+	
 	public static void toFile(String path, JSONArray jsonArray) {
 		try (FileWriter file = new FileWriter(path)) {
 
@@ -51,6 +91,5 @@ public class JSONUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 	}
 }

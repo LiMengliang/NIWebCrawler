@@ -9,6 +9,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -83,9 +84,15 @@ public class HttpClientDownloader extends AbstractDownloader {
        // END
        
        try {   
-       	Log.consoleWriteLine((new StringBuilder("Start fetching from ").append(request.getUrl()).append("[").append(Thread.currentThread().getId()).append("]")).toString());
+       		Log.consoleWriteLine((new StringBuilder("Start fetching from ").append(request.getUrl()).append("[").append(Thread.currentThread().getId()).append("]")).toString());
 			httpclient = HttpClients.createDefault(); 
-       	HttpGet httpget = new HttpGet(url); 
+			
+			HttpGet httpget = new HttpGet(url); 
+			RequestConfig requestConfig = RequestConfig.custom()  
+			        .setConnectTimeout(5000).setConnectionRequestTimeout(1000)  
+			        .setSocketTimeout(600000).build();  
+			httpget.setConfig(requestConfig);  
+			
 	        CloseableHttpResponse response = httpclient.execute(httpget);  
 	        try {    
 	        	if (HttpClientUtils.isTextHtmlType(response)) {            		
