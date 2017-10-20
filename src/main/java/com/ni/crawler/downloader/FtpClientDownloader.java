@@ -26,19 +26,8 @@ public class FtpClientDownloader extends AbstractDownloader {
 	
 	public FtpClientDownloader(TaskService taskService) throws Exception {
 		//if (ftp == null) {
-			this.taskService = taskService;
-	        ftp = new FTPClient();
-	        ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out)));
-	        int reply;
-	        ftp.connect("ftp.ni.com");
-	        reply = ftp.getReplyCode();
-	        if (!FTPReply.isPositiveCompletion(reply)) {
-	            ftp.disconnect();
-	            throw new Exception("Exception in connecting to FTP Server");
-	        }
-	        ftp.login("anonymous", "");
-	        ftp.setFileType(FTP.BINARY_FILE_TYPE);
-	        ftp.enterLocalPassiveMode();
+
+    	this.taskService = taskService;
 		//}
     }
 
@@ -61,15 +50,44 @@ public class FtpClientDownloader extends AbstractDownloader {
         }
     }
 
+    private void initializeFtpClient(String url, String localPath) throws Exception {
+        ftp = new FTPClient();
+        ftp.addProtocolCommandListener(new FtpProtocolCommandListener(taskService, url, localPath));
+        int reply;
+        ftp.connect("ftp.ni.com");
+        reply = ftp.getReplyCode();
+        if (!FTPReply.isPositiveCompletion(reply)) {
+            ftp.disconnect();
+            throw new Exception("Exception in connecting to FTP Server");
+        }
+        ftp.login("anonymous", "");
+        ftp.setFileType(FTP.BINARY_FILE_TYPE);
+        ftp.enterLocalPassiveMode();
+    }
 
 	private static final String ATTACHMENT_LOCAL_CACHE_PATH = "/home/meli/NIWebCache/attachment";
 //	private static final String ATTACHMENT_LOCAL_CACHE_PATH = "/home/meli";
 	@Override
 	public Page download(Request request) {
+		
 		Log.consoleWriteLine((new StringBuilder("[FTP] Start fetching from ").append(request.getUrl()).append("[").append(Thread.currentThread().getId()).append("]")).toString());
+				
+		if (request.getUrl().contains(".exe")) {
+			if (taskService != null) {
+				taskService.update(request.getUrl(), 'c', 'b', "");
+			}
+			return new Page("", request.getUrl());
+		}
 		
 		int nameIndex = request.getUrl().lastIndexOf('/');
 		String localPath = ATTACHMENT_LOCAL_CACHE_PATH + request.getUrl().substring(nameIndex);
+		try {
+			initializeFtpClient(request.getUrl(), localPath);
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}		
+		
 		int ftpNameIndex = request.getUrl().indexOf("pub");
 		String remoteName = request.getUrl().substring(ftpNameIndex);
 		try (FileOutputStream fos = new FileOutputStream(localPath)) {
@@ -80,9 +98,9 @@ public class FtpClientDownloader extends AbstractDownloader {
         }finally {
         	disconnect();
         }
-		if (taskService != null) {
-			taskService.update(request.getUrl(), 'c', 'b', localPath);
-		}
+//		if (taskService != null) {
+//			taskService.update(request.getUrl(), 'c', 'b', localPath);
+//		}
 		return new Page("", request.getUrl());
 		
 //		works

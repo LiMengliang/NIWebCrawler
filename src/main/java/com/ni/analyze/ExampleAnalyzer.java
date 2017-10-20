@@ -99,7 +99,10 @@ public class ExampleAnalyzer implements PageAnalyzer {
 		File file = new File(localPath);
 		if (file.exists()) {
 			Document doc = JsoupUtils.parseLocalFile(localPath);
-			Element body = JsoupUtils.getElementByClass(doc, "lia-message-unread");
+			Element body = JsoupUtils.getFirstHitElementByClass(doc, new String[] {
+					"lia-message-unread",
+					"wp-title"
+			});// JsoupUtils.getElementByClass(doc, "lia-message-unread");
 			if (body != null) {
 				Example example = new Example();
 				example.setUrl(task.getUrl());
@@ -170,7 +173,7 @@ public class ExampleAnalyzer implements PageAnalyzer {
 				Element articleSection  = JsoupUtils.getFirstHitElementByClass(doc, new String[] {
 						"lia-message-template-content-zone",
 						"lia-message-body-content",
-						"clearfix pnx-block-2x "
+						"tutorial-body"
 				});
 				if (articleSection != null) {
 					String article = articleSection.text();

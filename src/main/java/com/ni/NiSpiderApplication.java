@@ -3,7 +3,9 @@ package com.ni;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -13,6 +15,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.log4j.Level;
@@ -59,6 +62,7 @@ import com.ni.crawler.utils.Log;
 import com.ni.crawler.utils.StemUtils;
 import com.ni.crawler.utils.UrlUtilities;
 import com.ni.kmean.KMeans;
+import com.ni.kmean.KMeansCenter;
 import com.ni.kmean.KMeansCluster;
 import com.ni.kmean.KMeansNode;
 import com.ni.lda.Corpus;
@@ -81,6 +85,11 @@ public class NiSpiderApplication {
 	@Autowired
 	private ExampleService exampleService;
 	
+	@RequestMapping("/crawlforum")
+	public void crawlForum() {
+		
+	}
+	
 	@RequestMapping("/crawl")
 	public void crawl(){
 		// get a logger instance named "com.foo"
@@ -94,19 +103,19 @@ public class NiSpiderApplication {
 		   //examples
 		   new Crawler(taskService)
 		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:4/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3478/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3465/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:8/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:11/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:1/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:13/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:6/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:7/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:2/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:4497/")
-//		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:4018/")
-//		   	.addSeedUrl("https://forums.ni.com/t5/Example-Programs/tkb-p/3039")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3478/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3465/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:8/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:11/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:1/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:13/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:6/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:7/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:3/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:2/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:4497/")
+		   	.addSeedUrl("http://search.ni.com/nisearch/app/main/p/ap/tech/lang/en/pg/1/sn/catnav:ex,n8:4018/")
+		   	.addSeedUrl("https://forums.ni.com/t5/Example-Programs/tkb-p/3039")
 		   	.start();
 		   
 	}
@@ -396,19 +405,26 @@ public class NiSpiderApplication {
 		
 		List<ArticleTfIdf> tfidfs = new ArrayList<>();
 		List<Task> tasks = null;
+		int index = 0;
 		do {
 			tasks = null;
 			Page<Task> page = this.taskService.getAllDownloadedTasks(pageIndex, 10);
 			if (page != null) {
 				tasks = page.getContent();
+				
 				for(Task task : tasks) {
+					index++;
+					// Just a workaround to work with pca
+//					if ((index % 3) != 0) {
+//						continue;
+//					}
 					
 					Example example = (Example)exAnalyzer.analyze(task);
 					if (example != null) {
 						String overview = example.getOverview();
-						if (overview != null) {
+//						if (overview != null) {
 							
-							List<String> terms = analyzer.analyze(example.getTitle() + " " + example.getTitle());
+							List<String> terms = analyzer.analyze(example.getTitle());
 							ArticleTfIdf tfidf = new ArticleTfIdf(example.getUrl(), example.getTitle());
 							
 							for(String term : terms) {								
@@ -440,7 +456,7 @@ public class NiSpiderApplication {
 							tfidfs.add(tfidf);
 							Log.consoleWriteLine("******* estimate " + name + " ** " + example.getUrl());
 //							Map<Double, List<String>> freq = reverseKeyAndValue(tfidf.getTfidf());
-						}
+//						}
 					}	
 				}
 			}
@@ -450,18 +466,124 @@ public class NiSpiderApplication {
 		// JSONUtils.toFile("/home/meli/Tfidfs.json", JSONUtils.tfidfsToJSONArray(tfidfs));
 	}
 	
+	@RequestMapping("example/fulltfidf")
+	public void exampleFullTfIdf() {
+				
+		int pageIndex = 1;
+		Map<String, Double> termAndDocFreq = null;
+		ExampleAnalyzer exAnalyzer = new ExampleAnalyzer();
+		TextAnalyzer analyzer = new TextAnalyzer();
+		
+		try {
+			termAndDocFreq = JSONUtils.jsonToMap(JSONUtils.readFromFile("/home/meli/TermFreq.json"));
+		} catch (ParseException | IOException e) {
+			e.printStackTrace();
+		}
+		
+		List<ArticleTfIdf> tfidfs = new ArrayList<>();
+		List<Task> tasks = null;
+		int index = 0;
+		do {
+			tasks = null;
+			Page<Task> page = this.taskService.getAllDownloadedTasks(pageIndex, 10);
+			if (page != null) {
+				tasks = page.getContent();
+				
+				for(Task task : tasks) {
+					index++;
+					// Just a workaround to work with pca
+					if ((index % 5) != 0) {
+						continue;
+					}
+					
+					Example example = (Example)exAnalyzer.analyze(task);
+					if (example != null) {
+						String overview = example.getOverview();
+							
+						List<String> terms = analyzer.analyze(example.getFullContent());
+						ArticleTfIdf tfidf = new ArticleTfIdf(example.getUrl(), example.getTitle());
+						
+						for(String term : terms) {								
+							double count = tfidf.getOrDefaultTfidf(term, 0.0);
+							tfidf.updateTfIdf(term, count + 1);		
+						}
+							
+						double maxScore = -1.0;
+						for(Map.Entry<String, Double> score : tfidf.getTfidf().entrySet()) {
+							double idf = termAndDocFreq.getOrDefault(score.getKey(), 1.0);
+							double finalScore = score.getValue()*idf;
+							if (maxScore < finalScore) {
+								maxScore = finalScore;
+							}
+							tfidf.updateTfIdf(score.getKey(), finalScore);
+						}
+							
+						for(Map.Entry<String, Double> score : tfidf.getTfidf().entrySet()) {
+							tfidf.updateTfIdf(score.getKey(), score.getValue()/maxScore);
+						}
+
+						String name = example.getTitle().replace('/', '_');
+						JSONUtils.toFile("/home/meli/fulltfidf/" + name + ".json", tfidf.tfidfToJSON());
+						tfidfs.add(tfidf);
+						Log.consoleWriteLine("******* estimate " + name + " ** " + example.getUrl());
+					}	
+				}
+			}
+			pageIndex += 1;		
+		}while(tasks != null && tasks.size() >= 10);
+		Log.consoleWriteLine("******* finished **********");
+	}
+	
+	// cluster example.
+		@RequestMapping("clusterFullExample")
+		public void clusterFullExample() throws IOException {
+			
+			List<ArticleTfIdf> tfidfs = readTfidfFromJson(true);
+			KMeans kmeans = new KMeans(100, tfidfs);		
+			kmeans.cluster();
+			Log.consoleWriteLine("finished clustering");
+			Map<KMeansCluster, Double> distances = new HashMap<>();
+			int i = 1;
+			
+			File file = new File("/home/meli/TextCluster2");
+			FileWriter writer = new FileWriter(file);
+			for(KMeansCluster cluster : kmeans.getClusters()) {
+//				Log.consoleWriteLine("Cluster: size " + cluster.getNodes().size() + " max distance " + cluster.getMaxDistance());
+//				Log.consoleWriteLine("Cluster: size " + cluster.getNodes().size() + " average distance " + cluster.getAverageDistance());
+//	 			Log.consoleWriteLine("Cluster: size " + cluster.getNodes().size() + " x2 distance " + cluster.getX2Distance());
+				Log.consoleWriteLine(" ");
+				// Log.consoleWriteLine("*******************Cluster ******************************");
+				
+				writer.write("*******************Cluster " + i + " count " + cluster.getNodes().size() +  "******************************");
+				writer.write('\n');
+				for(KMeansNode node : cluster.getNodes()) {
+					ArticleTfIdf e = (ArticleTfIdf)node;
+					// Log.consoleWriteLine(e.getTitle());
+					StringBuilder sb = new StringBuilder();
+					sb.append(e.getTitle()).append(":::").append(Integer.toString(i)).append("\r\n");
+					writer.write(sb.toString());
+//					writer.write(e.getTitle());writer.write('\n');
+				}
+
+				i++;
+				
+				Log.consoleWriteLine(" ");
+			}
+			writer.close();
+		}
+	
 	// cluster example.
 	@RequestMapping("clusterExample")
 	public void clusterExample() throws IOException {
 		
-		List<ArticleTfIdf> tfidfs = readTfidfFromJson();
+		List<ArticleTfIdf> tfidfs = readTfidfFromJson(false);
 		KMeans kmeans = new KMeans(100, tfidfs);		
 		kmeans.cluster();
 		Log.consoleWriteLine("finished clustering");
 		Map<KMeansCluster, Double> distances = new HashMap<>();
 		int i = 1;
 		
-		File file = new File("/home/meli/TextCluster2");
+		File file = new File("/home/meli/TextCluster_example");
 		FileWriter writer = new FileWriter(file);
 		for(KMeansCluster cluster : kmeans.getClusters()) {
 //			Log.consoleWriteLine("Cluster: size " + cluster.getNodes().size() + " max distance " + cluster.getMaxDistance());
@@ -470,19 +592,81 @@ public class NiSpiderApplication {
 			Log.consoleWriteLine(" ");
 			// Log.consoleWriteLine("*******************Cluster ******************************");
 			
-			writer.write("*******************Cluster " + i + " count " + cluster.getNodes().size() +  "******************************");
+			List<?> topKeywords = ((KMeansCenter)(cluster.getCenter())).getTopKeywords(2);
+			if (topKeywords.size() >= 2) {
+				writer.write("*******************Cluster " + i + " count " + cluster.getNodes().size() + " Keywords: " + topKeywords.get(0) + " " + topKeywords.get(1) + " " +  "******************************");
+				
+			} else if (topKeywords.size() >= 1) {
+				writer.write("*******************Cluster " + i + " count " + cluster.getNodes().size() + " Keywords: " + topKeywords.get(0) + " " + "******************************");
+				
+			} else {
+				writer.write("*******************Cluster " + i + " count " + cluster.getNodes().size() + "******************************");
+			}
 			writer.write('\n');
-			i++;
 			for(KMeansNode node : cluster.getNodes()) {
 				ArticleTfIdf e = (ArticleTfIdf)node;
 				// Log.consoleWriteLine(e.getTitle());
-				writer.write(e.getTitle());writer.write('\n');
+				StringBuilder sb = new StringBuilder();
+				sb.append(e.getTitle()).append(":::").append(Integer.toString(i)).append("\r\n");
+				writer.write(sb.toString());
+//				writer.write(e.getTitle());writer.write('\n');
 			}
-			
+
+			i++;
 			
 			Log.consoleWriteLine(" ");
 		}
 		writer.close();
+	}
+	
+	@RequestMapping("genfulltfidf")
+	public void generateFullTfIdf() throws IOException {
+		Set<String> wordsBag = new HashSet<>(1024);
+		List<ArticleTfIdf> tfidfs = readTfidfFromJson(false);
+		for(ArticleTfIdf tfidf : tfidfs) {
+			for(Map.Entry<String, Double> entrySet : tfidf.getVector().entrySet()) {
+				wordsBag.add(entrySet.getKey());
+			}
+		}
+		
+		// List<ArticleTfIdf> fullTfidfs = new ArrayList<>();
+//		try {			
+//			for(ArticleTfIdf tfidf : tfidfs) {
+//				Map<String, Double> tfidfWordsBag = tfidf.getVector();
+//				ArticleTfIdf fullTfidf = new ArticleTfIdf(tfidf.getUrl(), tfidf.getTitle());
+//				for(String word : wordsBag) {
+//					double value = tfidfWordsBag.getOrDefault(word, 0.0);
+//					fullTfidf.getVector().put(word, value);
+//				}
+//				// fullTfidfs.add(fullTfidf);
+//			}
+//			
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//		}
+		File file = new File("/home/meli/FullTfidfs");
+		int index = 0;
+		try(FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+			
+			
+			for(ArticleTfIdf tfidf : tfidfs) {
+				
+				index ++;
+				StringBuilder oneLine = new StringBuilder();
+				Map<String, Double> tfidfWordsBag = tfidf.getVector();
+				ArticleTfIdf fullTfidf = new ArticleTfIdf(tfidf.getUrl(), tfidf.getTitle());
+//				{
+					for(String word : wordsBag) {
+						double value = tfidfWordsBag.getOrDefault(word, 0.0);
+						oneLine.append(Double.toString(value * 1000)).append("\t");
+					}
+					oneLine.append("\r\n");
+					// fullTfidfs.add(fullTfidf);
+					fileOutputStream.write(oneLine.toString().getBytes());
+//				}
+			}
+			
+		}		
 	}
 	
 	@RequestMapping("ldaTest")
@@ -500,8 +684,9 @@ public class NiSpiderApplication {
 	}
 	
 	
-	private List<ArticleTfIdf> readTfidfFromJson() {
-		File directory = new File("/home/meli/tfidf");
+	private List<ArticleTfIdf> readTfidfFromJson(boolean full) {
+		String path = full ? "/home/meli/fulltfidf" : "/home/meli/tfidf";
+		File directory = new File(path);
 		List<ArticleTfIdf> tfidfs = new ArrayList<ArticleTfIdf>();
 		if (directory.exists()) {
 			File[] files = directory.listFiles();

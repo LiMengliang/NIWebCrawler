@@ -40,10 +40,11 @@ public class ParallelExecutor implements Executor {
 	@Override
 	public void acceptRequest(Request request) {
 		
-
-		boolean taskUnprocesed = taskService.addUniqueTask(new Task(request.getUrl(), 'b', 'a')) && !processingUrls.contains(request.getUrl());
+		Log.consoleWriteLine("[Try to Submit] " + request.getUrl());
+		boolean taskUnprocesed = !processingUrls.contains(request.getUrl()) && taskService.addUniqueTask(new Task(request.getUrl(), 'b', 'a'));
 		if (taskUnprocesed) {
 			processingUrls.add(request.getUrl());
+			Log.consoleWriteLine("[Submit] " + request.getUrl());
 			Future<Object> submit = threadPool.submit(new Runnable() {	
 				@Override
 				public void run() {
@@ -83,6 +84,9 @@ public class ParallelExecutor implements Executor {
 				}
 				
 			}, null);
+		} else {
+			if (processingUrls.contains(request.getUrl()))
+			Log.consoleWriteLine("[Skip Submit] " + request.getUrl());
 		}
 		
 	}
