@@ -23,12 +23,24 @@ public class ForumTopicListProcessor extends GeneralPageProcessor  {
 	}
 
 	private final String forumUrl = "https://forums.ni.com";
-	private final String[] topicLinkPattern = new String[] {
-		"", "t5", "{*}", "{*}", "td-p", "{*}"
+	private final String[][] topicLinkPattern = new String[][] {
+		{"", "t5", "{*}", "{*}", "td-p", "{num}"},
+		{"", "t5", "{*}", "{*}", "ta-p", "{num}"},
+		{"", "t5", "{*}", "{*}", "ba-p", "{num}"},
+		{"", "t5", "{*}", "{*}", "gpm-p", "{num}"},
+		
 	};
-	private final String[] nextPageLinkPattern = new String[] {
-		"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}", "page", "{num}"
+	private final String[][] nextPageLinkPattern = new String[][] {
+		{"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}", "page", "{num}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "bg-p", "{*}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "bg-p", "{*}", "page", "{num}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "ct-p", "{*}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "ct-p", "{*}", "page", "{num}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "gp-p", "{*}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "gp-p", "{*}", "page", "{num}"}
 	};
+
 	
 	// TODO: need to get rid of duplicated urls.
 	@Override

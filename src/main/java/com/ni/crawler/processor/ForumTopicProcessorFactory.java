@@ -7,7 +7,9 @@ public class ForumTopicProcessorFactory implements PageProcessorFactory {
 
 	private static final String[][] ACCEPTED_PATTERNS = new String[][] {
 		{"https:", "", "forums.ni.com", "t5", "{*}", "{*}", "td-p", "{*}"},
-		{"https:", "", "forums.ni.com", "t5", "{*}", "{*}", "ta-p", "{*}"}
+		{"https:", "", "forums.ni.com", "t5", "{*}", "{*}", "ta-p", "{*}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "{*}", "ba-p", "{*}"},
+		{"https:", "", "forums.ni.com", "t5", "{*}", "{*}", "gpm-p", "{*}"}
 	};
 	
 	@Override

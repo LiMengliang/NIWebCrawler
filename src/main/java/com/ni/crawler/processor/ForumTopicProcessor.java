@@ -28,12 +28,12 @@ public class ForumTopicProcessor extends GeneralPageProcessor  {
 		List<Request> subRequests = new ArrayList<>();
 		
 		Elements links = JsoupUtils.selectElements(page, "a[href]");
-		for(Element link : links) {
-			String href = JsoupUtils.getAttributeValue(link, "href");
-			if (UrlUtilities.isUrlPatternMatch(href, ATTACHMENT_URL_PATTERN)) {
-				subRequests.add(new Request(buildAttachmentUrl(href)));
-			}
-		}		
+//		for(Element link : links) {
+//			String href = JsoupUtils.getAttributeValue(link, "href");
+//			if (UrlUtilities.isUrlPatternMatch(href, ATTACHMENT_URL_PATTERN)) {
+//				subRequests.add(new Request(buildAttachmentUrl(href)));
+//			}
+//		}		
 		super.onAnalyzeLinksFinished(page);
 		return subRequests;
 	}

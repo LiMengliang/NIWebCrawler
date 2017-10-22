@@ -22,6 +22,21 @@ public class JsoupUtils {
 		return doc.select(query);
 	}
 	
+	public static Document getDocumentFromLocalPath(String localPath) {
+		Document doc = null;
+		try {
+			doc = Jsoup.parse(new File(localPath), "UTF-8");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return doc;
+	}
+	
+	public static Elements getElementsByQuery(Element element, String query) {
+		return element.select(query);
+	}
+	
 	public static Elements selectElements(Element element, String query) {
 		return element.select(query);
 	}

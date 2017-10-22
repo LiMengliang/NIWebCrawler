@@ -7,7 +7,15 @@ public class ForumTopicListProcessorFactory implements PageProcessorFactory {
 	
 	private final static String[][] ACCAPTED_PATTERNs = new String[][] {
 			{"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}"},
-			{"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}", "page", "{*}"}
+			{"https:", "", "forums.ni.com", "t5", "{*}", "bd-p", "{*}", "page", "{num}"},
+			{"https:", "", "forums.ni.com", "t5", "{*}", "bg-p", "{*}"},
+			{"https:", "", "forums.ni.com", "t5", "{*}", "bg-p", "{*}", "page", "{num}"},
+			{"https:", "", "forums.ni.com", "t5", "{*}", "ct-p", "{*}"},
+			{"https:", "", "forums.ni.com", "t5", "{*}", "ct-p", "{*}", "page", "{num}"},
+			{"https:", "", "forums.ni.com", "t5", "{*}", "idb-p", "{*}"},
+			{"https:", "", "forums.ni.com", "t5", "{*}", "idb-p", "{*}", "page", "{num}"},
+			{"https:", "", "forums.ni.com", "t5", "{*}", "gp-p", "{*}"},
+			{"https:", "", "forums.ni.com", "t5", "{*}", "gp-p", "{*}", "page", "{num}"}
 	};
 
 	@Override

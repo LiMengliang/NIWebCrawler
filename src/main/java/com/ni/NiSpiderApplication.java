@@ -21,6 +21,8 @@ import java.util.TreeMap;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.lemurproject.kstem.KrovetzStemmer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,8 +88,41 @@ public class NiSpiderApplication {
 	private ExampleService exampleService;
 	
 	@RequestMapping("/crawlforum")
-	public void crawlForum() {
-		
+	public void crawlForum() throws FileNotFoundException, IOException {
+		Document document = JsoupUtils.getDocumentFromLocalPath("/home/meli/eclipse-workspace/NISpider/src/main/resources/Discussion Forums - Discussion Forums - National Instruments.html");
+		Element categoryList = JsoupUtils.getElementByClass(document, "lia-list-tree-toggle-container");
+		Elements categoryLinks = JsoupUtils.getElementsByQuery(categoryList, "a[href]");
+		HashSet<String> hrefs = new HashSet<>();
+		File file = new File("/home/meli/urls");
+		HashSet<String> tags = new HashSet<>();
+		try(FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+
+			categoryLinks.forEach(x -> {
+				String href = JsoupUtils.getAttributeValue(x, "href");
+				if ("" != href) {
+					assert href.contains("https");
+					hrefs.add(href);
+					String[] segments = href.split("/");
+					if (segments.length >= 6) {
+
+						tags.add(segments[5]);	
+					}
+					try {
+						fileOutputStream.write((href + "\r\n").getBytes());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			});	
+		}
+		Crawler crawler = new Crawler(taskService);
+		for(String href : hrefs) {
+			crawler.addSeedUrl(href);
+			
+		}
+		crawler.start();
+		return;
 	}
 	
 	@RequestMapping("/crawl")
